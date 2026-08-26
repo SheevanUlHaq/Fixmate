@@ -1,10 +1,18 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timestamps()
+        timeout(time: 20, unit: 'MINUTES')
+    }
+
     stages {
 
         stage('Checkout') {
             steps {
+                deleteDir()
                 checkout scm
             }
         }
@@ -12,29 +20,43 @@ pipeline {
         stage('Create Environment') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'fixmate-env', variable: 'FIXMATE_ENV')
+                    string(
+                        credentialsId: 'fixmate-env',
+                        variable: 'FIXMATE_ENV'
+                    )
                 ]) {
                     sh '''
                         printf '%s\\n' "$FIXMATE_ENV" > backend/.env
+                        chmod 600 backend/.env
                     '''
                 }
             }
         }
 
-        stage('Clean Docker') {
+        stage('Clean Old Containers') {
             steps {
                 sh '''
                     docker compose down --remove-orphans || true
                     docker container prune -f
-                    docker image prune -af
-                    docker builder prune -af
                 '''
             }
         }
 
-        stage('Build Images') {
+        stage('Build Backend') {
             steps {
-                sh 'docker compose build'
+                sh '''
+                    COMPOSE_PARALLEL_LIMIT=1 \
+                    docker compose build backend
+                '''
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                sh '''
+                    COMPOSE_PARALLEL_LIMIT=1 \
+                    docker compose build frontend
+                '''
             }
         }
 
@@ -49,7 +71,7 @@ pipeline {
                 ]) {
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login \
-                            -u "$DOCKER_USERNAME" \
+                            --username "$DOCKER_USERNAME" \
                             --password-stdin
 
                         docker compose push
@@ -63,9 +85,18 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    docker compose down --remove-orphans
                     docker compose pull
-                    docker compose up -d
+                    docker compose up -d --remove-orphans
+                '''
+            }
+        }
+
+        stage('Cleanup Docker') {
+            steps {
+                sh '''
+                    docker container prune -f
+                    docker image prune -f
+                    docker builder prune -f --filter "until=24h"
                 '''
             }
         }
