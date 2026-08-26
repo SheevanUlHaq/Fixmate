@@ -34,7 +34,7 @@ services:
     image: sheevanulhaq/fixmate-frontend:latest
     container_name: fixmate-frontend
     ports:
-      - "8080:80"
+      - "5173:80"
     depends_on:
       backend:
         condition: service_healthy
