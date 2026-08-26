@@ -33,6 +33,17 @@ pipeline {
             }
         }
 
+        stage('Clean Docker') {
+            steps {
+                sh '''
+                    docker compose down --remove-orphans || true
+                    docker container prune -f
+                    docker image prune -af
+                    docker builder prune -af
+                '''
+            }
+        }
+
         stage('Build Images') {
             steps {
                 sh 'docker compose build'
@@ -64,7 +75,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    docker compose down
+                    docker compose down --remove-orphans
                     docker compose pull
                     docker compose up -d
                 '''
