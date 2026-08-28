@@ -17,27 +17,38 @@ pipeline {
             }
         }
 
-        stage('Create Environment') {
+          stage('Create Environment') {
             steps {
                 withCredentials([
-                    string(
-                        credentialsId: 'fixmate-env',
-                        variable: 'FIXMATE_ENV'
-                    )
+                    string(credentialsId: 'mongodb-uri', variable: 'MONGODB_URI'),
+                    string(credentialsId: 'jwt-secret', variable: 'JWT_SECRET'),
+                    string(credentialsId: 'cloudinary-name', variable: 'CLOUDINARY_CLOUD_NAME'),
+                    string(credentialsId: 'cloudinary-key', variable: 'CLOUDINARY_API_KEY'),
+                    string(credentialsId: 'cloudinary-secret', variable: 'CLOUDINARY_API_SECRET')
                 ]) {
                     sh '''
-                        printf '%s\\n' "$FIXMATE_ENV" > backend/.env
+                        printf '%s\\n' \
+                            "PORT=5000" \
+                            "MONGODB_URI=$MONGODB_URI" \
+                            "JWT_SECRET=$JWT_SECRET" \
+                            "CLOUDINARY_CLOUD_NAME=$CLOUDINARY_CLOUD_NAME" \
+                            "CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY" \
+                            "CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET" \
+                            "CLIENT_URL=http://13.203.207.59:5173" \
+                            > backend/.env
+
                         chmod 600 backend/.env
                     '''
                 }
             }
         }
 
-        stage('Clean Old Containers') {
+        stage('Clean Old Docker Resources') {
             steps {
                 sh '''
-                    docker compose down --remove-orphans || true
                     docker container prune -f
+                    docker image prune -f
+                    docker builder prune -f --filter "until=24h"
                 '''
             }
         }

@@ -4,15 +4,19 @@ services:
       context: ./backend
     image: sheevanulhaq/fixmate-backend:latest
     container_name: fixmate-backend
+
     env_file:
       - ./backend/.env
+
     environment:
       NODE_ENV: production
       PORT: 5000
-      CLIENT_URL: http://localhost:8080
+
     expose:
       - "5000"
+
     restart: unless-stopped
+
     healthcheck:
       test:
         [
@@ -31,11 +35,15 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: /api
+
     image: sheevanulhaq/fixmate-frontend:latest
     container_name: fixmate-frontend
+
     ports:
       - "5173:80"
+
     depends_on:
       backend:
         condition: service_healthy
+
     restart: unless-stopped
