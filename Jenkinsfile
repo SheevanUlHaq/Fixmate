@@ -34,7 +34,7 @@ pipeline {
                             "CLOUDINARY_CLOUD_NAME=$CLOUDINARY_CLOUD_NAME" \
                             "CLOUDINARY_API_KEY=$CLOUDINARY_API_KEY" \
                             "CLOUDINARY_API_SECRET=$CLOUDINARY_API_SECRET" \
-                            "CLIENT_URL=http://13.203.86.59:5173" \
+                            "CLIENT_URL=http://52.66.246.19:5173" \
                             > backend/.env
 
                         chmod 600 backend/.env
