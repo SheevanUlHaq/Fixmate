@@ -1,8 +1,11 @@
 import { ArrowLeft, Home, SearchX } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const dashboardPath = user ? `/${user.role}` : "/";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
@@ -15,7 +18,7 @@ export default function NotFound() {
         <p className="mt-3 text-slate-500">The page you requested does not exist or may have moved.</p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link className="btn-primary" to="/"><Home size={17} />Go to home</Link>
-          <button className="btn-secondary" onClick={() => navigate(-1)}><ArrowLeft size={17} />Go back</button>
+          <button className="btn-secondary" onClick={() => navigate(dashboardPath, { replace: true })}><ArrowLeft size={17} />Return to dashboard</button>
         </div>
       </section>
     </main>

@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="landing min-h-screen bg-white">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <div className="text-2xl font-black">Fix<span className="text-blue-600">Mate</span></div>
         <div className="flex gap-3"><Link className="btn-secondary" to="/login">Sign in</Link><Link className="btn-primary" to="/register">Get started</Link></div>
