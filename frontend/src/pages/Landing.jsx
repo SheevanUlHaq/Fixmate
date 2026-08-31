@@ -1,5 +1,6 @@
-import { ArrowRight, CheckCircle2, ShieldCheck, Wrench, Users } from "lucide-react";
+import { ArrowRight, ShieldCheck, Wrench, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import Footer from "../components/Footer";
 
 export default function Landing() {
   return (
@@ -21,6 +22,7 @@ export default function Landing() {
           [ShieldCheck,"Accountable resolution","Status history, comments, notifications and ratings keep everyone aligned."]
         ].map(([Icon,title,text]) => <div className="card p-7" key={title}><div className="mb-5 inline-flex rounded-xl bg-blue-50 p-3 text-blue-600"><Icon/></div><h3 className="text-lg font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-500">{text}</p></div>)}
       </div></section>
+      <Footer />
       <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-500">FixMate · Internal service request management</footer>
     </div>
   );

@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Bell, ClipboardList, LayoutDashboard, LogOut, Settings, ShieldCheck, Users, Wrench, Menu, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "../components/NotificationBell";
+import Footer from "../components/Footer";
 import { useState } from "react";
 
 const navByRole = {
@@ -85,6 +86,7 @@ export default function AppLayout() {
           </div>
         </header>
         <main className="p-4 md:p-8"><Outlet /></main>
+        <Footer app />
       </div>
     </div>
   );

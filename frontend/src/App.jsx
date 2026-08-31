@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminRequests from "./pages/admin/Requests";
 import Technicians from "./pages/admin/Technicians";
 import Users from "./pages/admin/Users";
+import NotFound from "./pages/NotFound";
 
 export default function App(){
  return <AuthProvider><BrowserRouter><Routes>
@@ -29,6 +30,6 @@ export default function App(){
      <Route element={<ProtectedRoute roles={["technician"]}/>}><Route path="/technician" element={<TechnicianDashboard/>}/><Route path="/technician/requests" element={<TechnicianRequests/>}/><Route path="/technician/profile" element={<TechnicianProfile/>}/></Route>
      <Route element={<ProtectedRoute roles={["admin"]}/>}><Route path="/admin" element={<AdminDashboard/>}/><Route path="/admin/requests" element={<AdminRequests/>}/><Route path="/admin/technicians" element={<Technicians/>}/><Route path="/admin/users" element={<Users/>}/></Route>
    </Route></Route>
-   <Route path="*" element={<Navigate to="/" replace/>}/>
+   <Route path="*" element={<NotFound/>}/>
  </Routes><Toaster position="top-right"/></BrowserRouter></AuthProvider>;
 }
