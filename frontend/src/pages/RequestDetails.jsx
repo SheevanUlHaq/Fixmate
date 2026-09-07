@@ -7,6 +7,7 @@ import {
   UserRound,
   Star,
   XCircle,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../services/api";
@@ -62,6 +63,20 @@ export default function RequestDetails() {
       toast.error(e.response?.data?.message || "Action failed");
     }
   };
+  const cancelRequest = () => {
+    if (!window.confirm("Cancel this request? This cannot be undone.")) return;
+    action(`/technician/requests/${id}/status`, { status: "CANCELLED" });
+  };
+  const deleteRequest = async () => {
+    if (!window.confirm("Delete this request? This cannot be undone.")) return;
+    try {
+      await api.delete(`/requests/${id}`);
+      toast.success("Request deleted");
+      navigate("/employee/requests");
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Could not delete request");
+    }
+  };
   const rate = async () => {
     try {
       await api.post(`/requests/${id}/rating`, { rating, review });
@@ -107,12 +122,22 @@ export default function RequestDetails() {
               <CheckCircle2 size={16} /> Resolve
             </button>
           )}
+          {isTech && ["ASSIGNED", "IN_PROGRESS"].includes(r.status) && (
+            <button className="btn-danger" onClick={cancelRequest}>
+              <XCircle size={16} /> Cancel request
+            </button>
+          )}
           {isOwner && r.status === "RESOLVED" && (
             <button
               className="btn-primary"
               onClick={() => action(`/requests/${id}/close`, {})}
             >
               <CheckCircle2 size={16} /> Close request
+            </button>
+          )}
+          {isOwner && r.status === "REPORTED" && (
+            <button className="btn-danger" onClick={deleteRequest}>
+              <Trash2 size={16} /> Delete request
             </button>
           )}
 

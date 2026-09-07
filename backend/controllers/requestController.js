@@ -3,7 +3,6 @@ import ServiceRequest from "../models/ServiceRequest.js";
 import Comment from "../models/Comment.js";
 import Rating from "../models/Rating.js";
 import Notification from "../models/Notification.js";
-import TechnicianProfile from "../models/TechnicianProfile.js";
 import { notify, notifyAdmins } from "../utils/notifications.js";
 import { canTransition } from "../utils/status.js";
 import { success, failure } from "../utils/response.js";
@@ -55,7 +54,10 @@ export const createRequest = async (req, res) => {
     }
 
     const request = await ServiceRequest.create(data);
-    await notifyAdmins(request._id, `New ${request.priority.toLowerCase()} priority request: "${request.title}"`);
+    await notifyAdmins(
+      request._id,
+      `New ${request.priority.toLowerCase()} priority request: "${request.title}"`,
+    );
     return success(res, "Request created successfully", { request }, 201);
   } catch (error) {
     return failure(res, error.message, 500);
@@ -151,7 +153,11 @@ export const updateRequest = async (req, res) => {
         `Request "${request.title}" was updated`,
       );
     if (req.user.role !== "admin")
-      await notifyAdmins(request._id, `Request "${request.title}" was updated by ${req.user.name}`, req.user._id);
+      await notifyAdmins(
+        request._id,
+        `Request "${request.title}" was updated by ${req.user.name}`,
+        req.user._id,
+      );
     return success(res, "Request updated successfully", { request });
   } catch (error) {
     return failure(res, error.message, 500);
@@ -207,7 +213,11 @@ export const closeRequest = async (req, res) => {
         request._id,
         `Request "${request.title}" was closed`,
       );
-    await notifyAdmins(request._id, `Request "${request.title}" was closed by ${req.user.name}`, req.user._id);
+    await notifyAdmins(
+      request._id,
+      `Request "${request.title}" was closed by ${req.user.name}`,
+      req.user._id,
+    );
     return success(res, "Request closed successfully", { request });
   } catch (error) {
     return failure(res, error.message, 500);
