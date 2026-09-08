@@ -101,10 +101,12 @@ export const getRequests = async (req, res) => {
   }
 };
 
-export const getUsers = async (req, res) => {
+export const getEmployees = async (req, res) => {
   try {
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
-    return success(res, "Users loaded", { users });
+    const employees = await User.find({ role: "employee" })
+      .select("-password")
+      .sort({ createdAt: -1 });
+    return success(res, "Employees loaded", { employees });
   } catch (error) {
     return failure(res, error.message, 500);
   }
@@ -174,6 +176,7 @@ export const createTechnician = async (req, res) => {
       password: await bcrypt.hash(password, 10),
       phone: phone?.trim(),
       role: "technician",
+      emailVerified: true,
     });
     await TechnicianProfile.create({ userId: technician._id });
 
@@ -272,19 +275,19 @@ export const changeTechnicianStatus = async (req, res) => {
   }
 };
 
-export const changeUserStatus = async (req, res) => {
+export const changeEmployeeStatus = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.params.id, role: { $ne: "admin" } });
-    if (!user) return failure(res, "User not found", 404);
+    const user = await User.findOne({ _id: req.params.id, role: "employee" });
+    if (!user) return failure(res, "Employee not found", 404);
 
     user.isActive = Boolean(req.body.isActive);
     await user.save();
 
     if (user.isActive) {
-      await notify(user._id, null, "Your FixMate account has been activated by an administrator");
+      await notify(user._id, null, "Your employee account has been activated by an administrator");
     }
 
-    return success(res, "User status updated", { user: user.toObject({ transform: (_, ret) => { delete ret.password; return ret; } }) });
+    return success(res, "Employee status updated", { user: user.toObject({ transform: (_, ret) => { delete ret.password; return ret; } }) });
   } catch (error) {
     return failure(res, error.message, 500);
   }

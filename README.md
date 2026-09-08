@@ -91,6 +91,8 @@ Employee closes
 
 ### Auth
 - POST `/api/auth/register`
+- POST `/api/auth/verify-email`
+- POST `/api/auth/resend-verification`
 - POST `/api/auth/login`
 - GET `/api/auth/me`
 
@@ -113,7 +115,7 @@ Employee closes
 ### Admin
 - GET `/api/admin/dashboard`
 - GET `/api/admin/requests`
-- GET `/api/admin/users`
+- GET `/api/admin/employees`
 - GET `/api/admin/technicians`
 - POST `/api/admin/technicians`
 - PUT `/api/admin/requests/:id/assign`
@@ -145,6 +147,13 @@ CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 CLIENT_URL=http://localhost:5173
+COMPANY_EMAIL_DOMAIN=fixmate.com
+SMTP_HOST=smtp.your-email-provider.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=notifications@fixmate.com
+SMTP_PASS=
+SMTP_FROM=FixMate <notifications@fixmate.com>
 ```
 
 Frontend `.env`:
@@ -182,15 +191,15 @@ The seed script creates:
 
 ```text
 Admin:
-admin@fixmate.local
+alex.admin@fixmate.com
 Admin@123
 
 Technician:
-tech@fixmate.local
+rohan.tech@fixmate.com
 Tech@123
 
 Employee:
-employee@fixmate.local
+sara@fixmate.com
 Employee@123
 ```
 

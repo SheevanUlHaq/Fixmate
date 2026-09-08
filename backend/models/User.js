@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       enum: ["employee", "technician", "admin"],
       default: "employee"
     },
+    emailVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true }
   },
   { timestamps: true }

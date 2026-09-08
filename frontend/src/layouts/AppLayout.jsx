@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Bell, ClipboardList, LayoutDashboard, LogOut, Settings, ShieldCheck, Users, Wrench, Menu, X } from "lucide-react";
+import { Bell, ClipboardList, LayoutDashboard, LogOut, Settings, Users, Wrench, Menu, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "../components/NotificationBell";
 import Footer from "../components/Footer";
@@ -23,7 +23,7 @@ const navByRole = {
     ["/admin", "Dashboard", LayoutDashboard],
     ["/admin/requests", "All Requests", ClipboardList],
     ["/admin/technicians", "Technicians", Users],
-    ["/admin/users", "Users", ShieldCheck],
+    ["/admin/employees", "Employees", Users],
     ["/notifications", "Notifications", Bell],
     ["/profile", "Profile", Settings]
   ]
