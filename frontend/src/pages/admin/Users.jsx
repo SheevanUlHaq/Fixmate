@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
-import { UserCheck, UserX, Wrench } from "lucide-react";
+import { UserCheck, UserX } from "lucide-react";
 import Spinner from "../../components/Spinner";
 
 export default function Users() {
@@ -27,16 +27,6 @@ export default function Users() {
     if (!value) return users;
     return users.filter((u) => `${u.name} ${u.email} ${u.role}`.toLowerCase().includes(value));
   }, [users, query]);
-
-  const promote = async (user) => {
-    try {
-      await api.put(`/admin/users/${user._id}/role`);
-      toast.success(`${user.name} is now a technician`);
-      load();
-    } catch (e) {
-      toast.error(e.response?.data?.message || "Could not update role");
-    }
-  };
 
   const toggleStatus = async (user) => {
     try {
@@ -88,7 +78,6 @@ export default function Users() {
                     <td className="px-5 py-4 text-slate-500">{new Date(user.createdAt).toLocaleDateString()}</td>
                     <td className="px-5 py-4">
                       <div className="flex flex-wrap gap-2">
-                        {user.role === "employee" && <button className="btn-secondary" onClick={() => promote(user)}><Wrench size={14} /> Make technician</button>}
                         {user.role !== "admin" && <button className="btn-secondary" onClick={() => toggleStatus(user)}>{user.isActive ? <><UserX size={14} /> Deactivate</> : <><UserCheck size={14} /> Activate</>}</button>}
                       </div>
                     </td>

@@ -1,6 +1,7 @@
 import ServiceRequest from "../models/ServiceRequest.js";
 import User from "../models/User.js";
 import TechnicianProfile from "../models/TechnicianProfile.js";
+import bcrypt from "bcryptjs";
 import { notify } from "../utils/notifications.js";
 import { addStatusChange } from "./requestController.js";
 import { success, failure } from "../utils/response.js";
@@ -156,6 +157,37 @@ export const getTechnicians = async (req, res) => {
   }
 };
 
+export const createTechnician = async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+    if (!name || !email || !password) {
+      return failure(res, "Name, email and password are required");
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const exists = await User.findOne({ email: normalizedEmail });
+    if (exists) return failure(res, "Email is already registered", 409);
+
+    const technician = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      password: await bcrypt.hash(password, 10),
+      phone: phone?.trim(),
+      role: "technician",
+    });
+    await TechnicianProfile.create({ userId: technician._id });
+
+    return success(
+      res,
+      "Technician account created",
+      { technician: technician.toObject({ transform: (_, ret) => { delete ret.password; return ret; } }) },
+      201,
+    );
+  } catch (error) {
+    return failure(res, error.message, 500);
+  }
+};
+
 export const assignRequest = async (req, res) => {
   try {
     const { technicianId } = req.body;
@@ -253,28 +285,6 @@ export const changeUserStatus = async (req, res) => {
     }
 
     return success(res, "User status updated", { user: user.toObject({ transform: (_, ret) => { delete ret.password; return ret; } }) });
-  } catch (error) {
-    return failure(res, error.message, 500);
-  }
-};
-
-export const makeTechnician = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
-    if (!user) return failure(res, "User not found", 404);
-    if (user.role === "admin")
-      return failure(res, "Cannot change an admin's role", 400);
-
-    user.role = "technician";
-    await user.save();
-
-    const existing = await TechnicianProfile.findOne({ userId: user._id });
-    if (!existing) {
-      await TechnicianProfile.create({ userId: user._id });
-    }
-
-    await notify(user._id, null, "Your FixMate account has been promoted to technician");
-    return success(res, "User promoted to technician", { user });
   } catch (error) {
     return failure(res, error.message, 500);
   }

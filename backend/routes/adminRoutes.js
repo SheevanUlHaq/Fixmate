@@ -4,10 +4,10 @@ import {
   getRequests,
   getUsers,
   getTechnicians,
+  createTechnician,
   assignRequest,
   changePriority,
   changeTechnicianStatus,
-  makeTechnician,
   changeUserStatus,
 } from "../controllers/adminController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
@@ -19,9 +19,9 @@ router.get("/dashboard", dashboard);
 router.get("/requests", getRequests);
 router.get("/users", getUsers);
 router.get("/technicians", getTechnicians);
+router.post("/technicians", createTechnician);
 router.put("/requests/:id/assign", assignRequest);
 router.put("/requests/:id/priority", changePriority);
 router.put("/technicians/:id/status", changeTechnicianStatus);
-router.put("/users/:id/role", makeTechnician);
 router.put("/users/:id/status", changeUserStatus);
 export default router;

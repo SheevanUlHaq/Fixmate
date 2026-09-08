@@ -115,6 +115,7 @@ Employee closes
 - GET `/api/admin/requests`
 - GET `/api/admin/users`
 - GET `/api/admin/technicians`
+- POST `/api/admin/technicians`
 - PUT `/api/admin/requests/:id/assign`
 - PUT `/api/admin/requests/:id/priority`
 - PUT `/api/admin/technicians/:id/status`
