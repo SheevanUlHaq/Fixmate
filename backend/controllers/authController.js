@@ -15,14 +15,12 @@ const isCompanyEmail = (email) => {
   return domain && email.endsWith(`@${domain}`);
 };
 
-const createAndSendVerification = async (user) => {
+const createAndSendVerification = async (verification) => {
   const code = String(randomInt(100000, 1000000));
-  await EmailVerification.findOneAndUpdate(
-    { userId: user._id },
-    { codeHash: await bcrypt.hash(code, 10), expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
-  );
-  await sendVerificationEmail({ name: user.name, email: user.email, code });
+  verification.codeHash = await bcrypt.hash(code, 10);
+  verification.expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+  await verification.save();
+  await sendVerificationEmail({ name: verification.name, email: verification.email, code });
 };
 
 export const register = async (req, res) => {
@@ -34,28 +32,36 @@ export const register = async (req, res) => {
       return failure(res, `Use your company email address (@${companyDomain() || "company domain"})`, 403);
     }
 
-    const exists = await User.findOne({ email: normalizedEmail });
-    if (exists) return failure(res, "Email is already registered", 409);
+    const [existingUser, pendingVerification] = await Promise.all([
+      User.exists({ email: normalizedEmail }),
+      EmailVerification.exists({ email: normalizedEmail }),
+    ]);
+    if (existingUser) return failure(res, "Email is already registered", 409);
+    if (pendingVerification) return failure(res, "A verification code is already pending for this email. Use resend code.", 409);
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({
+    const verification = await EmailVerification.create({
       name,
       email: normalizedEmail,
-      password: hashed,
+      passwordHash: hashed,
       phone,
-      role: "employee",
-      emailVerified: false,
-      isActive: false,
+      codeHash: "pending",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
 
     try {
-      await createAndSendVerification(user);
+      await createAndSendVerification(verification);
     } catch (error) {
-      await Promise.all([EmailVerification.deleteOne({ userId: user._id }), User.deleteOne({ _id: user._id })]);
+      await EmailVerification.deleteOne({ _id: verification._id });
       return failure(res, error.message, 500);
     }
 
-    return success(res, "Verification code sent to your company email", { email: user.email }, 201);
+    return success(
+      res,
+      "Verification code sent to your company email",
+      { email: verification.email, expiresAt: verification.expiresAt },
+      201,
+    );
   } catch (error) {
     return failure(res, error.message, 500);
   }
@@ -64,17 +70,22 @@ export const register = async (req, res) => {
 export const verifyEmail = async (req, res) => {
   try {
     const { email, code } = req.body;
-    const user = await User.findOne({ email: email?.toLowerCase().trim(), role: "employee" }).select("+password");
-    if (!user) return failure(res, "Employee account not found", 404);
-    if (user.emailVerified) return failure(res, "Email is already verified", 409);
-
-    const verification = await EmailVerification.findOne({ userId: user._id });
+    const normalizedEmail = email?.toLowerCase().trim();
+    if (await User.exists({ email: normalizedEmail })) return failure(res, "Email is already verified", 409);
+    const verification = await EmailVerification.findOne({ email: normalizedEmail });
     if (!verification || verification.expiresAt <= new Date()) return failure(res, "Verification code has expired. Request a new code.", 400);
     if (!(await bcrypt.compare(String(code || ""), verification.codeHash))) return failure(res, "Invalid verification code", 400);
 
-    user.emailVerified = true;
-    user.isActive = true;
-    await Promise.all([user.save(), EmailVerification.deleteOne({ _id: verification._id })]);
+    const user = await User.create({
+      name: verification.name,
+      email: verification.email,
+      password: verification.passwordHash,
+      phone: verification.phone,
+      role: "employee",
+      emailVerified: true,
+      isActive: true,
+    });
+    await EmailVerification.deleteOne({ _id: verification._id });
     await notifyAdmins(null, `New employee ${user.name} verified their company email`);
 
     return success(res, "Email verified. Your employee account is active.", {
@@ -89,11 +100,13 @@ export const verifyEmail = async (req, res) => {
 export const resendVerification = async (req, res) => {
   try {
     const email = req.body.email?.toLowerCase().trim();
-    const user = await User.findOne({ email, role: "employee" });
-    if (!user) return failure(res, "Employee account not found", 404);
-    if (user.emailVerified) return failure(res, "Email is already verified", 409);
-    await createAndSendVerification(user);
-    return success(res, "A new verification code was sent to your company email");
+    if (await User.exists({ email })) return failure(res, "Email is already verified", 409);
+    const verification = await EmailVerification.findOne({ email });
+    if (!verification) return failure(res, "No pending verification was found for this email", 404);
+    await createAndSendVerification(verification);
+    return success(res, "A new verification code was sent to your company email", {
+      expiresAt: verification.expiresAt,
+    });
   } catch (error) {
     return failure(res, error.message, 500);
   }
