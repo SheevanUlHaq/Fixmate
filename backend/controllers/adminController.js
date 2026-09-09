@@ -204,27 +204,35 @@ export const assignRequest = async (req, res) => {
     const request = await ServiceRequest.findById(req.params.id);
     if (!request) return failure(res, "Request not found", 404);
 
-    const previousTechnicianId = request.assignedTo;
-    request.assignedTo = technician._id;
-    if (request.status === "REPORTED") {
-      await addStatusChange(
-        request,
-        req.user,
-        "ASSIGNED",
-        `Assigned to ${technician.name}`,
+    if (request.assignedTo) {
+      return failure(
+        res,
+        "A technician has already been assigned to this request and cannot be changed",
+        400,
       );
-    } else {
-      await request.save();
     }
+
+    if (request.status !== "REPORTED") {
+      return failure(
+        res,
+        `Cannot assign a technician to a request with status ${request.status}`,
+        400,
+      );
+    }
+
+    request.assignedTo = technician._id;
+    await addStatusChange(
+      request,
+      req.user,
+      "ASSIGNED",
+      `Assigned to ${technician.name}`,
+    );
 
     await notify(
       technician._id,
       request._id,
       `You were assigned request "${request.title}"`,
     );
-    if (previousTechnicianId && String(previousTechnicianId) !== String(technician._id)) {
-      await notify(previousTechnicianId, request._id, `Request "${request.title}" was reassigned to ${technician.name}`);
-    }
     await notify(
       request.createdBy,
       request._id,

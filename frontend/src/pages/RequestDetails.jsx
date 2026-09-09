@@ -255,24 +255,31 @@ export default function RequestDetails() {
                 </p>
               </div>
             </div>
-            {user.role === "admin" && (
-              <select
-                className="input mt-5"
-                value={r.assignedTo?._id || ""}
-                onChange={(e) =>
-                  action(`/admin/requests/${id}/assign`, {
-                    technicianId: e.target.value,
-                  })
-                }
-              >
-                <option value="">Select technician</option>
-                {techs.map((t) => (
-                  <option value={t._id} key={t._id}>
-                    {t.name} · {t.profile?.specialization || "Other"}
-                  </option>
-                ))}
-              </select>
-            )}
+            {user.role === "admin" &&
+              (!r.assignedTo && r.status === "REPORTED" ? (
+                <select
+                  className="input mt-5"
+                  value=""
+                  onChange={(e) =>
+                    action(`/admin/requests/${id}/assign`, {
+                      technicianId: e.target.value,
+                    })
+                  }
+                >
+                  <option value="">Select technician</option>
+                  {techs.map((t) => (
+                    <option value={t._id} key={t._id}>
+                      {t.name} · {t.profile?.specialization || "Other"}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="mt-4 text-xs font-medium text-slate-400">
+                  {r.assignedTo
+                    ? "Assignment is final and cannot be changed."
+                    : `Cannot assign (${r.status.toLowerCase()} request).`}
+                </p>
+              ))}
           </div>
           <div className="card p-6">
             <h2 className="text-lg font-bold">Resolution</h2>
